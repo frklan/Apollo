@@ -1,0 +1,17 @@
+language: java
+jdk:
+- oraclejdk9
+deploy:
+  provider: releases
+  api_key:
+    secure: DUCpsEEE4sAj4Df8Lp8vOohYX89OdwM9YKvK1WzJJDhXGiABsl+HL9q8HmE8ZHvUmKgfhCPbDEGuF4Hvptu7Ri62VZQR7BXoELjRbvsfRFI75AJMNPqnuTQIjLpO55Tyy5/CcVTuBpZLELd8XkciFpILXsputWRRPOCPEEo+Kn0obm47nZyNr5Ax/phavLuO/qeTSVfP7I4PjgQF1z9/YLDsxleT6KO2jqqy6NMxy9rKMeC2ZzhduPa7LHiQMbHfDs0wdZt4alpPinZ493w+wUPoXYAcZ9DIiL96rcMwTYAX3mGI0Ldu64FpwR7dRBjR9vG4FaP7HdIqOTLXyENHzZR4g7QXDOm1DYBZVC2LNyWLW3jVXjihI45aunPT9JJOLLMmF7Eb/jFsb6k0/2vqUKVKc9GsjT/O182R9kaEHS4iJtI/Ba4gzrdTXEhMC0DiYcXhgOJntGUSY6h2rKOq/D+2qO8x3SIPWvTuxOKMGynTkLqwZEf1G6/Ls8Sso68ukEr3M1ZrjjlN9j+fgmYaO2skd8jNfV7hHMwOa0oMkTsb4Nm27Xv3n/1bMFFJXDzMTr1rFXCHWGfTWmCtgfYa7TCoDmGrGKjSjfr7qRNtOEaEFCC956BxY2mnzKNOMNBHK+IcDlzoObUwYzewD+Cpsm+gxYPMEhVqTGnI28hLeV0=
+  file: "$TRAVIS_BUILD_DIR/target/Apollo*.jar"
+  skip_cleanup: true
+  on:
+    repo: frklan/Apollo
+    tags: true
+notifications:
+  email:
+    on_success: never
+    on_failure: change
+  
