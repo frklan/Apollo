@@ -1,5 +1,5 @@
 # Apollo
-[![Java 8](https://img.shields.io/badge/Java-8-brightgreen.svg)](https://www.spigotmc.org/wiki/spigot/)
+[![Java 8](https://img.shields.io/badge/Java-8-brightgreen.svg)](http://www.oracle.com/technetwork/java/javase/overview/java8-2100321.html)
 [![Build Status](https://travis-ci.org/frklan/Apollo.svg?branch=master)](https://travis-ci.org/frklan/Apollo)
 [![GitHub release](https://img.shields.io/github/release/frklan/Apollo.svg)](https://github.com/frklan/Apollo/releases)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/frklan/Apollo/issues)
