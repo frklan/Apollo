@@ -1,0 +1,280 @@
+package com.yellowfortyfour.apollo.api.plugin;
+
+import com.yellowfortyfour.apollo.api.plugin.*;
+import com.yellowfortyfour.apollo.api.command.*;
+import com.yellowfortyfour.apollo.api.logger.*;
+
+import java.io.IOException;
+import java.util.logging.Handler;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+import java.io.File;
+import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.jar.*;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.nio.file.WatchEvent.Kind;
+import java.nio.file.WatchEvent.Modifier;
+
+import org.yaml.snakeyaml.*;
+import org.yaml.snakeyaml.constructor.Constructor; 
+
+import jline.console.ConsoleReader;
+
+public class PluginHandler 
+{
+    private Boolean isRunning = true;
+    private LinkedList<Plugin> plugins = new LinkedList<Plugin>();
+    private HashMap<String, Command> commands = new HashMap<String, Command>();
+    private ConsoleReader consoleReader = null;
+    private final String LOGGER_NAME = "com.yellowfortyfour.apollo";
+    private final Logger logger = Logger.getLogger(LOGGER_NAME);
+    private HashMap<String, PluginDescription> pluginsToLoad = new HashMap<>();
+    
+    public PluginHandler() throws IOException
+    {
+        consoleReader = new ConsoleReader();
+        consoleReader.setExpandEvents(false);
+        setupLogger();
+
+        getLogger().info("Loading plugins..");
+
+        try
+        {   
+            loadInternalPlugin(new VersionPlugin());
+            loadInternalPlugin(new HelpPlugin());
+            detectExternalPlugins(getPluginsDir());
+            loadExternalPlugins();
+            enablePlugins();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        getLogger().info("All plugins loaded.");
+    }
+
+    private void loadInternalPlugin(Plugin plugin)
+    {
+        logger.info("Loading " + plugin.getPluginName() + " (internal plugin)");
+
+        String p = new File(getPluginsDir(), plugin.getPluginName() ).getAbsolutePath();
+        plugin.init(this, p);
+        if(plugin.onLoad())
+            plugins.add(plugin);
+    }
+
+    private void loadExternalPlugins()
+    {
+        try
+        {
+            Set<String> s = pluginsToLoad.keySet();
+
+            for(String pluginName : s)
+            {
+                getLogger().info("Loading " + pluginName);
+
+                URI uri = pluginsToLoad.get(pluginName).getJarFile().toURI();
+                URL[] urls = {uri.toURL()};
+                PluginClassLoader pluginClassLoader = new PluginClassLoader(urls);
+                
+                String mainClassName = pluginsToLoad.get(pluginName).getMainclass();
+                Class<?> mainClass = pluginClassLoader.loadClass(mainClassName);
+
+                Object pluginInstance =  mainClass.getDeclaredConstructor().newInstance();
+                pluginClassLoader.close();
+                Plugin p = (Plugin) pluginInstance;
+
+                p.init(this, uri.getPath().substring(0, uri.getPath().length() - 4));
+                if(p.onLoad())
+                {
+                    plugins.add(p);
+                }
+                else
+                {
+                    getLogger().severe(pluginName + " Plugin could not be strarted");
+                }
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void enablePlugins()
+    {
+        for(Plugin p : plugins)
+            p.onEnable();
+    }
+
+    private void detectExternalPlugins(File folder) throws Exception
+    {
+        for(File f : folder.listFiles())
+        {
+            if(!f.exists() || !f.getName().endsWith(".jar"))
+                continue; // no action on non .jar files
+
+            JarFile jar = new JarFile(f);
+            JarEntry pluginYml = jar.getJarEntry("plugin.yml");
+
+            if(pluginYml == null)
+            {
+                getLogger().severe(jar.getName() + " missing 'plugin.yml'");
+                jar.close();
+                continue;
+            }
+
+            InputStream ymlStream = jar.getInputStream(pluginYml);
+            if(ymlStream == null)
+            {
+                getLogger().severe("Can't read plugin.yml of " + jar.getName());
+                jar.close();
+                continue;
+            }
+
+            PluginDescription pd =  loadPluginProps(ymlStream);
+            pd.setJarFile(f);
+            pluginsToLoad.put(pd.name, pd);
+
+            ymlStream.close();
+            jar.close();
+        }
+    }
+   
+    private File getPluginsDir()
+    {
+        // This will spam the disk with folders, depending
+        // on if we run it from the IDE or command prompt
+        // the user.dir differs..
+        File pluginsFolder;
+        try
+        {
+            String path = System.getProperty("user.dir");
+            pluginsFolder = new File(path, "plugins");
+            
+            if(!pluginsFolder.exists())
+                pluginsFolder.mkdir();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+        return pluginsFolder;
+    }
+
+
+
+    public void registerCommand(String command, Command commandHandler, Plugin plugin)
+    {
+        if(commandHandler.onRegsiter(command))
+            commands.put(command, commandHandler);
+    }
+
+    public void unRegisterCommand(String command, Command commandHandler, Plugin plugin)
+    {
+        if(commandHandler.onUnRegsiter(command))
+        {
+            getLogger().warning("unregistering command '" + command + "', handled by " + commandHandler + " in plugin " + plugin);
+            commands.remove(command);
+        }
+    }
+
+    public Boolean dispatchCommand(String commandLine)
+    {
+        final Pattern argsSplit = Pattern.compile( " " );
+        String[] args = argsSplit.split( commandLine, -1 );
+		
+		// Ignore empty (i.e. "") commands
+		if (args[0].length() == 0)
+		{
+			return true;
+        }
+
+        String command = args[0].toLowerCase();
+        Set<String> availableCommands = commands.keySet();
+
+        for(String c : availableCommands)
+        {
+            if(c.equalsIgnoreCase(command))
+            {
+                return commands.get(c).executeCommand(command, args);
+            }
+        }
+        getLogger().warning(args[0] + " not found. Try 'help'.");
+        return true;
+    }
+
+    public void shutDown()
+    {
+        logger.info("Shutting down..");
+        for(Plugin p : plugins)
+        {
+            logger.info("Disabling plugin " + p.getPluginName());
+            p.onDisable();
+        }
+        logger.info("Godbye");
+               
+         // Clear remaining prompt.
+        try
+        {
+            consoleReader.resetPromptLine("", "", 1);    
+        }
+        catch(Exception e)
+        {
+            // do nothing
+        }
+        finally
+        {
+            consoleReader.close();  
+        }
+        isRunning = false;
+    }
+
+    
+    private void setupLogger()
+	{
+		logger.setUseParentHandlers(false);
+		Handler cnslHdlr = new LogHandler(getConsoleReader());
+		cnslHdlr.setFormatter(new LogFormatter());
+		logger.addHandler(cnslHdlr);
+	}
+    
+	public Logger getLogger()
+	{
+		return logger;
+    }
+    
+    public ConsoleReader getConsoleReader()
+    {
+        return consoleReader;
+    }
+
+    public Boolean isRunning()
+    {
+        return this.isRunning;
+    }
+
+
+
+
+
+
+    private PluginDescription loadPluginProps(InputStream input)
+    {        
+        Yaml yaml = new Yaml(new Constructor(PluginDescription.class));
+       
+        PluginDescription config = (PluginDescription) yaml.load(input);
+        return config;
+    }
+}

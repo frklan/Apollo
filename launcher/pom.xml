@@ -1,0 +1,131 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.yellowfortyfour</groupId>
+		<artifactId>apollo-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<!-- CHANGE THIS -->
+  <groupId>com.yellowfortyfour</groupId>
+  <artifactId>apollo-launcher</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>Apollo-Launcher</name>
+  <url>http://www.yellowfortyfour.com</url>
+	<description>
+		Launcher for the Apollo app.
+	</description>
+	<inceptionYear>2018</inceptionYear>
+	<!-- CHANGE THIS -->
+
+  <properties>
+		<maven.deploy.skip>true</maven.deploy.skip>
+		<!-- CHANGE THIS -->
+		<template.mainPackage>${project.groupId}.apollo</template.mainPackage>
+		<template.mainClass>${template.mainPackage}.Launcher</template.mainClass>
+		<template.></template.>
+		<!-- CHANGE THIS -->
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+
+ <dependencies>
+		<dependency>
+		<groupId>com.yellowfortyfour</groupId>
+		<artifactId>apollo-api</artifactId>
+		<version>${project.version}</version>
+		<scope>compile</scope>
+		</dependency>
+   <dependency>
+     <groupId>junit</groupId>
+     <artifactId>junit</artifactId>
+     <version>3.8.1</version>
+     <scope>test</scope>
+   </dependency>
+   
+	<dependency>
+		<groupId>jline</groupId>
+		<artifactId>jline</artifactId>
+		<version>2.14.5</version>
+	</dependency>
+	
+	<!-- https://mvnrepository.com/artifact/org.yaml/snakeyaml -->
+	<dependency>
+		<groupId>org.yaml</groupId>
+		<artifactId>snakeyaml</artifactId>
+		<version>1.19</version>
+	</dependency>
+  
+ </dependencies>
+  
+	<build>
+		<finalName>Apollo-${project.version}</finalName>
+		<plugins>
+		  <plugin>
+		    <!-- Build an executable JAR -->
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-jar-plugin</artifactId>
+		    <version>3.0.2</version>
+		    <configuration>
+		      <archive>
+						<manifestEntries>
+							<Main-Class>${template.mainClass}</Main-Class> 
+							<Implementation-Version>${describe}</Implementation-Version>
+							<Specification-Version>${maven.build.timestamp}</Specification-Version>
+						</manifestEntries>
+		        <manifest>
+		          <addClasspath>true</addClasspath>
+		          <classpathPrefix>lib/</classpathPrefix>
+		          <mainClass>${template.mainClass}</mainClass>
+		        </manifest>
+		      </archive>
+		    </configuration>
+		  </plugin>
+		  
+		  <plugin>
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-shade-plugin</artifactId>
+		    <version>2.3</version>
+		    <configuration>
+		        <createDependencyReducedPom>false</createDependencyReducedPom>
+		    </configuration>
+		    <executions>
+		        <execution>
+		            <phase>package</phase>
+		            <goals>
+		                <goal>shade</goal>
+		            </goals>
+		        </execution>
+		    </executions>
+		</plugin> 
+
+<!--		<plugin>
+			<groupId>sh.tak.appbundler</groupId>
+			<artifactId>appbundle-maven-plugin</artifactId>
+			<version>1.2.0</version>
+			<configuration>
+				<mainClass>com.yellowfortyfour.urllongifier.LongifierApp</mainClass>
+				<jrePath>/Library/Java/JavaVirtualMachines/jdk-9.0.1.jdk/</jrePath>
+				<generateDiskImageFile>true</generateDiskImageFile>
+			</configuration>
+			<executions>
+				<execution>
+					<phase>package</phase>
+					<goals>
+						<goal>bundle</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+-->
+
+	</plugins>
+</build>
+</project>
