@@ -5,11 +5,12 @@ deploy:
   provider: releases
   api_key:
     secure: jfniU5/wh6q9BKtYX9jGhjkdSJvuIi6VWjzNTZ8uM/HSmffWn5E/kVg9Xa2UP+ifh3Dxx6EoFplTgCRlbH1n1jgFg4ykSi2Y8Iq3JlRuuw+qaKsHYr24UpmA/1Bx7GnDL0pZzvxK7U84np++J8Z3F7RiT8xmWRfri4KPZt6/+jJWe/XLb55Gf4R0URx946KjtOeYTIMm25/PdYDtGdltJvStXQt35dV5jPlRKj8Wm8F6koWUxteqJJVYmiKnhsc9SQxIx5c3vw4fKPuQmpCpQ4SZxfg1X9i6/FqjhAqULqnbuNsmyrma1QiuGnh2bytSUYp/WGJ6LOn4PjHDOJLNIqg7iiQsTqGJQW+Rbg/yqbZ/NjJvIPbwxAeUuMLEv/PjFAb7bwVLLljc/V0aeJPaqAfprz2nRv5/bJAg7FeyX8s/dCs5KWSg8RsEtxBvUzJk9Zf8JagBtnVCVpUuZ/Y+/+Qe8+PjmBzoNAP+CsFuCazyhNkxC78QaH1HiqI9kvJgiKdQT1neYG4PNrbP5naZDAe+CI+AUu2UKdudzi50tcov1ogFm7Yc41k8DfdNQ6G/J0D27Lf97/T2PxHgTdeeWuY3MKSLuZAb7lMeh7simBlrqcAv9prbt95S6hvq+XFVY4+n4AKCGHByelPBgLPrqpEFKgJxEfK111qp8WtN7Pg=
-  file: "$TRAVIS_BUILD_DIR/target/Apollo*.jar"
+  file: "$TRAVIS_BUILD_DIR/launcher/target/Apollo-*.jar"
+  file: "$TRAVIS_BUILD_DIR/api/target/apollo-api-*.jar"
   skip_cleanup: true
   on:
     repo: frklan/Apollo
-    tags: true
+    tags: false
 notifications:
   email:
     on_success: never
