@@ -24,7 +24,7 @@ To compile issue the following commands
 ````
 $ git clone git@github.com:frklan/Apollo.git
 $ cd Apollo
-$ mvn package
+$ mvn package install
 ````
 
 ### Running
